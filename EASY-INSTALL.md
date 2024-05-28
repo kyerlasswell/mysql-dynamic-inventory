@@ -17,12 +17,13 @@ So in the example case, the file should live at:
 Then in your inventory YAML file, specify the plugin, db connections details, and query... as so.
 
 web-servers-mysql.yml:
+
 ```yaml
-#   Required columns: 
+#   Required columns:
 #   'inventory_group', 'inventory_hostname'
 #
 #   TLDR:
-#   Besides the required columns, each column will be assigned 
+#   Besides the required columns, each column will be assigned
 #   as an ansible hostvar dynamically.
 
 plugin: mysql-dynamic-inventory
@@ -33,7 +34,6 @@ db_name: mysql_database
 db_query: |
   SELECT ip_address as ansible_host, hostname as inventory_hostname, 'web_servers' as inventory_group from servers where hostname like "web%";
 ```
-
 
 Then verify the inventory with:
 
