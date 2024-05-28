@@ -5,7 +5,7 @@ import pymysql
 
 display = Display()
 
-DOCUMENTATION = r'''
+DOCUMENTATION = r"""
     name: mysql-dynamic-inventory
     plugin_type: inventory
     short_description: Returns Ansible inventory from an SQL query
@@ -30,23 +30,22 @@ DOCUMENTATION = r'''
       db_query:
         description: Database query
         required: true
-'''
+"""
+
 
 class InventoryModule(BaseInventoryPlugin):
-
-    NAME = 'mysql-dynamic-inventory'
+    NAME = "mysql-dynamic-inventory"
 
     def verify_file(self, path):
-        '''Ensures that the given file is valid for this plugin'''
+        """Ensures that the given file is valid for this plugin"""
         valid = False
         if super(InventoryModule, self).verify_file(path):
-            if path.endswith(('mysql.yaml',
-                              'mysql.yml')):
+            if path.endswith(("mysql.yaml", "mysql.yml")):
                 valid = True
         return valid
 
     def parse(self, inventory, loader, path, cache=True):
-        '''Parses the inventory file'''
+        """Parses the inventory file"""
         super(InventoryModule, self).parse(inventory, loader, path, cache)
         self._read_config_data(path)
 
@@ -58,37 +57,40 @@ class InventoryModule(BaseInventoryPlugin):
                     templated_option = self.templar.template(self.get_option(option))
                     self.set_option(option, templated_option)
             except Exception as e:
-                raise AnsibleError(f"Error processing templating for {option}: {str(e)}")
-        
+                raise AnsibleError(
+                    f"Error processing templating for {option}: {str(e)}"
+                )
+
         self._fetch_hosts()
 
     def _fetch_hosts(self):
-        '''Fetches hosts from the database and populates the inventory'''
+        """Fetches hosts from the database and populates the inventory"""
         group_init = {}
         try:
-            connection = pymysql.connect(host=self.get_option('db_host'),
-                                        user=self.get_option('db_user'),
-                                        password=self.get_option('db_pass'),
-                                        database=self.get_option('db_name'),
-                                        cursorclass=pymysql.cursors.DictCursor)
+            connection = pymysql.connect(
+                host=self.get_option("db_host"),
+                user=self.get_option("db_user"),
+                password=self.get_option("db_pass"),
+                database=self.get_option("db_name"),
+                cursorclass=pymysql.cursors.DictCursor,
+            )
             with connection.cursor() as cursor:
-                cursor.execute(self.get_option('db_query'))
+                cursor.execute(self.get_option("db_query"))
                 for row in cursor.fetchall():
-                    group = row.get('inventory_group')
+                    group = row.get("inventory_group")
                     if group and group not in group_init:
                         self.inventory.add_group(group)
                         group_init[group] = True
-                    hostname = row.get('inventory_hostname')
+                    hostname = row.get("inventory_hostname")
                     if hostname:
                         self.inventory.add_host(hostname, group=group)
                         # Dynamically set ansible host variables for each column returned
                         for key, value in row.items():
                             # Skip inventory_hostname and group as they're already used
-                            if key not in ['inventory_hostname', 'inventory_group']:
+                            if key not in ["inventory_hostname", "inventory_group"]:
                                 self.inventory.set_variable(hostname, key, value)
         except Exception as e:
             raise AnsibleError(f"Database query failed: {e}")
         finally:
             if connection:
                 connection.close()
-
