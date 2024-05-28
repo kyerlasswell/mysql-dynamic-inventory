@@ -32,7 +32,13 @@ db_user: mysql_user
 db_pass: mysql_pass
 db_name: mysql_database
 db_query: |
-  SELECT ip_address as ansible_host, hostname as inventory_hostname, 'web_servers' as inventory_group from servers where hostname like "web%";
+  SELECT 
+    ip_address as ansible_host,
+    hostname as inventory_hostname,
+    'web_servers' as inventory_group 
+  FROM servers
+  WHERE 
+    hostname LIKE "web%";
 ```
 
 _Note: The inventory filename must end with `mysql.yml` to pass verification._
