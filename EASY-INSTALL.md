@@ -35,6 +35,8 @@ db_query: |
   SELECT ip_address as ansible_host, hostname as inventory_hostname, 'web_servers' as inventory_group from servers where hostname like "web%";
 ```
 
+_Note: The inventory filename must end with `mysql.yml` to pass verification._
+
 Then verify the inventory with:
 
 `ansible-inventory -i web-servers-mysql.yml --graph`
